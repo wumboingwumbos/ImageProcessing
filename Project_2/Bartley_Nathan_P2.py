@@ -36,11 +36,12 @@ def calculate_angle(mag, angle_map_deg):
         hist, _ = np.histogram(theta[mask], bins=bins, weights=mag[mask])
         centers = (bins[:-1] + bins[1:]) * 0.5
         peak = centers[np.argmax(hist)]
+        plt.bar(centers, hist, width=1.0); plt.title('Angle Histogram'); plt.xlabel('Angle (degrees)'); plt.ylabel('Weighted Count'); plt.show()
         # refine: take angles near the peak and use a robust statistic
         win = 5.0
         sel = mask & (np.abs(theta - peak) <= win)
         rot_angle_deg = float(np.median(theta[sel])) if np.any(sel) else float(peak)
-    else:    
+    else:
         rot_angle_deg = 0.0
     return rot_angle_deg
 
@@ -68,14 +69,14 @@ def main():
     image_path = input("Enter Image Path: ")   
     print("Processing image:", image_path)
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE).astype(np.float32)                       # Loads as grayscale
-    # plt.imshow(img, cmap='gray'); plt.title('Original Image'); plt.axis('off'); plt.show()
+    plt.imshow(img, cmap='gray'); plt.title('Original Image'); plt.axis('off'); plt.show()
     # Constant Kernels
     blurnel = np.ones((5,5))/25                                       # 5x5 averaging kernel
     sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])          # Sobel kernel for x direction
     sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])          # Sobel kernel for y direction
     # Convolutions. Blur, Sobel X, Sobel Y,
     blurred_img = convolve2d(img, blurnel)
-    # plt.imshow(blurred_img, cmap='gray'); plt.title('Blurred Image'); plt.axis('off'); plt.show()
+    plt.imshow(blurred_img, cmap='gray'); plt.title('Blurred Image'); plt.axis('off'); plt.show()
     Gx = convolve2d(blurred_img, sobel_x)
     Gy = convolve2d(blurred_img, sobel_y)
 
@@ -103,12 +104,13 @@ def main():
     axs[1].axis('off')
     plt.tight_layout()
     plt.show()
-    # plt.imshow(rotated_final, cmap='gray'); plt.title('Rotated Image'); plt.axis('off'); plt.show()
-    # plt.imshow(cropped_final, cmap='gray'); plt.title('Cropped Image'); plt.axis('off'); plt.show()
-    # plt.imshow(Gx.astype(np.float32), cmap='gray'); plt.title('Gx'); plt.axis('off'); plt.show()
-    # plt.imshow(Gy.astype(np.float32), cmap='gray'); plt.title('Gy'); plt.axis('off'); plt.show()
-    # plt.imshow(edges, cmap='gray'); plt.title('Gradient Magnitude (0..1)'); plt.axis('off'); plt.show()
-    # plt.imshow(rotated_edges, cmap='gray'); plt.title('Rotated Image'); plt.axis('off'); plt.show()
+    plt.imshow(angle_map_deg, cmap='gray'); plt.title('Angle Map (degrees)'); plt.axis('off'); plt.show()
+    plt.imshow(rotated_final, cmap='gray'); plt.title('Rotated Image'); plt.axis('off'); plt.show()
+    plt.imshow(cropped_final, cmap='gray'); plt.title('Cropped Image'); plt.axis('off'); plt.show()
+    plt.imshow(Gx.astype(np.float32), cmap='gray'); plt.title('Gx'); plt.axis('off'); plt.show()
+    plt.imshow(Gy.astype(np.float32), cmap='gray'); plt.title('Gy'); plt.axis('off'); plt.show()
+    plt.imshow(edges, cmap='gray'); plt.title('Gradient Magnitude (0..1)'); plt.axis('off'); plt.show()
+    plt.imshow(rotated_edges, cmap='gray'); plt.title('Rotated Image'); plt.axis('off'); plt.show()
 
 if __name__ == "__main__":
     main()
