@@ -1,0 +1,22 @@
+## Image Processing Project 4
+
+## Overview
+
+# Detection
+- Chose webcam or load from video/image
+- find card in frame
+- orient card
+- crop card uniformly
+
+# Classification
+- convert to binary image
+- locate rank and suit on card
+- compare rank and suit with respective masks
+- classify by highest similarity
+
+## Requirements (TBD)
+- python 3.9
+- OpenCV
+- NumPy
+- Matplotlib
+- Scipy.fft
