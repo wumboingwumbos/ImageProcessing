@@ -94,23 +94,26 @@ def main():
     rotated_final = rotate_image(img, angle)
     cropped_final = crop_image(rotated_edges, rotated_final)
 
-    # Plot original and final images side by side #
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-    axs[0].imshow(img, cmap='gray')
-    axs[0].set_title('Original Image')
-    axs[0].axis('off')
-    axs[1].imshow(cropped_final, cmap='gray')
-    axs[1].set_title('Cropped Image')
-    axs[1].axis('off')
-    plt.tight_layout()
-    plt.show()
-    plt.imshow(angle_map_deg, cmap='gray'); plt.title('Angle Map (degrees)'); plt.axis('off'); plt.show()
-    plt.imshow(rotated_final, cmap='gray'); plt.title('Rotated Image'); plt.axis('off'); plt.show()
-    plt.imshow(cropped_final, cmap='gray'); plt.title('Cropped Image'); plt.axis('off'); plt.show()
-    plt.imshow(Gx.astype(np.float32), cmap='gray'); plt.title('Gx'); plt.axis('off'); plt.show()
-    plt.imshow(Gy.astype(np.float32), cmap='gray'); plt.title('Gy'); plt.axis('off'); plt.show()
-    plt.imshow(edges, cmap='gray'); plt.title('Gradient Magnitude (0..1)'); plt.axis('off'); plt.show()
-    plt.imshow(rotated_edges, cmap='gray'); plt.title('Rotated Image'); plt.axis('off'); plt.show()
+    # # Plot original and final images side by side #   
+    # fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    # axs[0].imshow(img, cmap='gray')
+    # axs[0].set_title('Original Image')
+    # axs[0].axis('off')
+    # axs[1].imshow(cropped_final, cmap='gray')
+    # axs[1].set_title('Cropped Image')
+    # axs[1].axis('off')
+    # plt.tight_layout()
+    # plt.show()
+    # plt.imshow(angle_map_deg, cmap='gray'); plt.title('Angle Map (degrees)'); plt.axis('off'); plt.show()
+    # plt.imshow(rotated_final, cmap='gray'); plt.title('Rotated Image'); plt.axis('off'); plt.show()
+    # plt.imshow(cropped_final, cmap='gray'); plt.title('Cropped Image'); plt.axis('off'); plt.show()
+    # plt.imshow(Gx.astype(np.float32), cmap='gray'); plt.title('Gx'); plt.axis('off'); plt.show()
+    # plt.imshow(Gy.astype(np.float32), cmap='gray'); plt.title('Gy'); plt.axis('off'); plt.show()
+    # plt.imshow(edges, cmap='gray'); plt.title('Gradient Magnitude (0..1)'); plt.axis('off'); plt.show()
+    # plt.imshow(rotated_edges, cmap='gray'); plt.title('Rotated Image'); plt.axis('off'); plt.show()
+
+    # save cropped image
+    cv2.imwrite("cropped_image.png", cropped_final)
 
 if __name__ == "__main__":
     main()
