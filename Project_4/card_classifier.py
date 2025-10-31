@@ -60,16 +60,14 @@ def find_all_components(binary_card):
 
 
 def main():
-    # for test_card_path in [test_cards_folder + name for name in test_cards]:
     for test_card_path in [test_cards_folder + name for name in test_cards]:
         test_card = cv2.imread(test_card_path, cv2.IMREAD_GRAYSCALE)
         # scale to fixed pixel dimensions
         test_card = cv2.resize(test_card, (200, 300), interpolation=cv2.INTER_AREA)
         test_card = cv2.threshold(test_card, 100, 255, cv2.THRESH_BINARY_INV)[1]
-
-        roi = test_card[10:80, 5:35]
+        roi = test_card[5:80, 0:35]
         # mask inner region to avoid border artifacts
-        plt.imshow(roi, cmap='gray'); plt.title('ROI'); plt.axis('off'); plt.show()
+        # plt.imshow(roi, cmap='gray'); plt.title('ROI'); plt.axis('off'); plt.show()
         suit_masks = []  # load suit masks from suit_base_path
         rank_masks = []  # load rank masks from rank_base_path
 
