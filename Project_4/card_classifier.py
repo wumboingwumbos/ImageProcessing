@@ -1,105 +1,101 @@
 # assuming input is oriented cropped card image
-# locates rank and suit on card image
+# finds all components on the card image
 # compares located rank and suit to pre-stored masks
 # output is card rank and suit
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-import glob
 
-def classify_card(card_image, rank_masks, suit_masks, rank_names=None, suit_names=None):
-    # convert to black and white
-    gray = cv2.cvtColor(card_image, cv2.COLOR_BGR2GRAY)
-    _, bw = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+# test_card_path = 'C:\\ImageProcessing\\Project_4\\test_cards\\A_spades.jpg'
+test_cards_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
+test_cards = ['7_clubs.jpg', '7_hearts.png', '9_spades.jpg', '10_hearts.jpg', 'A_spades.jpg', 'J_hearts.jpg', 'Q_hearts.jpg']
+              
+rank_base_path = 'C:\\ImageProcessing\\Project_4\\rank_masks_bw\\'
+suit_base_path = 'C:\\ImageProcessing\\Project_4\\suit_masks_bw\\'
 
-    # initial guess at rank and suit locations to start connected component analysis
-    # suit position
-    suit_roi = bw[20:120, 10:60]
-    # rank position
-    rank_roi = bw[10:110, 10:60]
-    # Connected components analysis to isolate rank and suit
-    num_labels_suit, labels_im_suit = cv2.connectedComponents(suit_roi)
-    num_labels_rank, labels_im_rank = cv2.connectedComponents(rank_roi)
-    # Extract the largest component as the suit
-    suit_component = np.zeros_like(suit_roi)
-    suit_component[labels_im_suit == 1] = 255
-    # Extract the largest component as the rank
-    rank_component = np.zeros_like(rank_roi)  
-    rank_component[labels_im_rank == 1] = 255
-    # Resize components to match mask sizes
-    suit_component_resized = cv2.resize(suit_component, (suit_masks[0].shape[1], suit_masks[0].shape[0]))
-    rank_component_resized = cv2.resize(rank_component, (rank_masks[0].shape[1], rank_masks[0].shape[0]))
-    # Compare suit component to suit masks
-    best_suit = None
-    best_suit_score = float('inf')
-    
-    # Jaccard similarity for better matching
-    for i, suit_mask in enumerate(suit_masks):
-        intersection = np.logical_and(suit_component_resized > 0, suit_mask > 0)
-        union = np.logical_or(suit_component_resized > 0, suit_mask > 0)
+def analyze_component(component, masks):
+    best_index = None
+    best_score = float('inf')
+    binary_comp = component > 0
+    for i, mask in enumerate(masks):
+        resized_mask = cv2.resize(mask, (binary_comp.shape[1], binary_comp.shape[0]), interpolation=cv2.INTER_NEAREST)
+        intersection = np.logical_and(binary_comp, resized_mask > 0)
+        union = np.logical_or(binary_comp, resized_mask > 0)
         jaccard_index = np.sum(intersection) / np.sum(union) if np.sum(union) > 0 else 0
         score = 1 - jaccard_index  # lower score is better
-        if score < best_suit_score:
-            best_suit_score = score
-            best_suit = i  # index of the best matching suit
+        if score < best_score:
+            best_score = score
+            best_index = i
+    # show side by side comparison of best mask and component
+    comparison = np.hstack((binary_comp.astype(np.uint8) * 255, resized_mask.astype(np.uint8) * 255))
+    # plt.imshow(comparison, cmap='gray'); plt.title('Component (left) vs Best Mask (right)'); plt.axis('off'); plt.show()
+    return best_index, best_score
+ 
+def find_all_components(binary_card):
+    num_labels, labels_im = cv2.connectedComponents(binary_card)
+    # print(f'Number of components found: {num_labels}')
+    components = []
+    for label in range(0, num_labels): 
+        component = np.zeros_like(binary_card)
+        # limit max height and width of component to avoid large background
+        if np.sum(labels_im == label) > 1000 or np.sum(labels_im == label) < 50:
+            continue
+        component[labels_im == label] = 255
+        # crop to bounding box
+        ys, xs = np.where(component > 0)
+        if ys.size > 0 and xs.size > 0:
+            y_min, y_max = ys.min(), ys.max()
+            x_min, x_max = xs.min(), xs.max()
+            component = component[y_min:y_max+1, x_min:x_max+1]
+            if component.shape[0]/component.shape[1] > 3.5 or component.shape[1]/component.shape[0] > 3.5:
+                continue
+            # print(f'component size: {component.shape}')
+        components.append(component)
+        cv2.imshow(f'Component {label}', component)
+        if len(components) == 2:
+            break
+    cv2.waitKey(0)    
+    return components
 
-    # Compare rank component to rank masks
-    best_rank = None
-    best_rank_score = float('inf')
-    for i, rank_mask in enumerate(rank_masks):
-        intersection = np.logical_and(rank_component_resized > 0, rank_mask > 0)
-        union = np.logical_or(rank_component_resized > 0, rank_mask > 0)
-        jaccard_index = np.sum(intersection) / np.sum(union) if np.sum(union) > 0 else 0
-        score = 1 - jaccard_index  # lower score is better
-        if score < best_rank_score:
-            best_rank_score = score
-            best_rank = i  # index of the best matching rank
-
-    # Map indices back to names if name lists were provided
-    rank_result = best_rank
-    suit_result = best_suit
-    if rank_names is not None and best_rank is not None and best_rank < len(rank_names):
-        rank_result = rank_names[best_rank]
-    if suit_names is not None and best_suit is not None and best_suit < len(suit_names):
-        suit_result = suit_names[best_suit]
-
-    return rank_result, suit_result
 
 
 def main():
-    # Load pre-stored rank and suit masks
-    rank_masks = []
-    rank_names = []
-    suit_masks = []
-    suit_names = []
+    # for test_card_path in [test_cards_folder + name for name in test_cards]:
+    for test_card_path in [test_cards_folder + name for name in test_cards]:
+        test_card = cv2.imread(test_card_path, cv2.IMREAD_GRAYSCALE)
+        # scale to fixed pixel dimensions
+        test_card = cv2.resize(test_card, (200, 300), interpolation=cv2.INTER_AREA)
+        test_card = cv2.threshold(test_card, 100, 255, cv2.THRESH_BINARY_INV)[1]
 
-    # Load all rank masks from the rank_masks/ directory. Filenames (without extension)
-    # are used as the rank identifiers (e.g. 'A', '2', 'J').
-    for filepath in sorted(glob.glob(os.path.join('rank_masks', '*.png'))):
-        name = os.path.splitext(os.path.basename(filepath))[0]
-        mask = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
-        if mask is None:
-            print(f"Warning: failed to load rank mask: {filepath}")
-            continue
-        rank_masks.append(mask)
-        rank_names.append(name)
+        roi = test_card[10:80, 5:35]
+        # mask inner region to avoid border artifacts
+        plt.imshow(roi, cmap='gray'); plt.title('ROI'); plt.axis('off'); plt.show()
+        suit_masks = []  # load suit masks from suit_base_path
+        rank_masks = []  # load rank masks from rank_base_path
 
-    # Load all suit masks from the suit_masks/ directory. Filenames are used as identifiers
-    # (e.g. 'C' -> clubs, 'D' -> diamonds).
-    for filepath in sorted(glob.glob(os.path.join('suit_masks', '*.png'))):
-        name = os.path.splitext(os.path.basename(filepath))[0]
-        mask = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
-        if mask is None:
-            print(f"Warning: failed to load suit mask: {filepath}")
-            continue
-        suit_masks.append(mask)
-        suit_names.append(name)
-    # Load test cropped and oriented card image
-    card_image = cv2.imread('test_card.png')
+        for i in range(4):  # assuming 4 suits
+            suit_mask = cv2.imread(f'{suit_base_path}{i}.png', cv2.THRESH_BINARY)
+            suit_masks.append(suit_mask)
+        for i in range(13):  # assuming 13 ranks
+            rank_mask = cv2.imread(f'{rank_base_path}{i+1}.png', cv2.THRESH_BINARY)
+            rank_masks.append(rank_mask)
+        # show ROI boxes on test card
+        # cv2.imshow('Test Card', test_card)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        components = find_all_components(roi)
 
-    rank_name, suit_name = classify_card(card_image, rank_masks, suit_masks, rank_names, suit_names)
-    print(f'Classified Card: Rank {rank_name}, Suit {suit_name}')
-
+        rank = analyze_component(components[0], rank_masks)
+        suit = analyze_component(components[1], suit_masks)
+        suit_mapping = {0: 'Hearts', 1: 'Diamonds', 2: 'Clubs', 3: 'Spades'}
+        rank_mapping = {i+1: str(i+1) for i in range(10)}
+        rank_mapping.update({11: 'J', 12: 'Q', 13: 'K', 1: 'A'})
+        # compare predicted rank with mask
+        # plt.imshow(components[0], cmap='gray'); plt.title('Detected Rank Component'); plt.axis('off'); plt.show()
+        # plt.imshow(rank_masks[rank[0]], cmap='gray'); plt.title('Best Matching Rank Mask'); plt.axis('off'); plt.show()
+        print(f'Detected Card: {rank_mapping[rank[0]+1]} of {suit_mapping[suit[0]]} (Rank Score: {1-rank[1]:.3f}, Suit Score: {1-suit[1]:.3f})')
+        # cv2.imshow('Masked Test Card', roi)
+        # cv2.waitKey(0)
+        plt.imshow(test_card, cmap='gray'); plt.title(rank_mapping[rank[0]+1] + " of " + suit_mapping[suit[0]]); plt.axis('off'); plt.show()
 if __name__ == "__main__":
     main()
