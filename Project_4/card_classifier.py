@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # test_card_path = 'C:\\ImageProcessing\\Project_4\\test_cards\\A_spades.jpg'
 test_cards_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
-test_cards = ['7_clubs.jpg', '7_hearts.png', '9_spades.jpg', '10_hearts.jpg', 'A_spades.jpg', 'J_hearts.jpg', 'Q_hearts.jpg']
+test_cards = ['7_clubs.jpg', '6_diamonds.jpg', 'A_diamonds.jpg', 'J_hearts.jpg', 'K_clubs.jpg', 'K_diamonds.jpg', 'A_hearts.jpg']
               
 rank_base_path = 'C:\\ImageProcessing\\Project_4\\rank_masks_bw\\'
 suit_base_path = 'C:\\ImageProcessing\\Project_4\\suit_masks_bw\\'
@@ -51,20 +51,24 @@ def find_all_components(binary_card):
                 continue
             # print(f'component size: {component.shape}')
         components.append(component)
-        cv2.imshow(f'Component {label}', component)
+        # cv2.imshow(f'Component {label}', component)
         if len(components) == 2:
             break
-    cv2.waitKey(0)    
+    # cv2.waitKey(0)    
     return components
 
-
+def dynamic_binarize(image):
+    blurred = cv2.GaussianBlur(image, (5, 5), 0)
+    binary = cv2.adaptiveThreshold(blurred.astype(np.uint8), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                   cv2.THRESH_BINARY_INV, 21, 5)
+    return binary
 
 def main():
     for test_card_path in [test_cards_folder + name for name in test_cards]:
-        test_card = cv2.imread(test_card_path, cv2.IMREAD_GRAYSCALE)
+        original = cv2.imread(test_card_path, cv2.IMREAD_GRAYSCALE)
         # scale to fixed pixel dimensions
-        test_card = cv2.resize(test_card, (200, 300), interpolation=cv2.INTER_AREA)
-        test_card = cv2.threshold(test_card, 100, 255, cv2.THRESH_BINARY_INV)[1]
+        test_card = cv2.resize(original, (200, 300), interpolation=cv2.INTER_AREA)
+        test_card = dynamic_binarize(test_card)
         roi = test_card[5:80, 0:35]
         # mask inner region to avoid border artifacts
         # plt.imshow(roi, cmap='gray'); plt.title('ROI'); plt.axis('off'); plt.show()
@@ -94,6 +98,6 @@ def main():
         print(f'Detected Card: {rank_mapping[rank[0]+1]} of {suit_mapping[suit[0]]} (Rank Score: {1-rank[1]:.3f}, Suit Score: {1-suit[1]:.3f})')
         # cv2.imshow('Masked Test Card', roi)
         # cv2.waitKey(0)
-        plt.imshow(test_card, cmap='gray'); plt.title(rank_mapping[rank[0]+1] + " of " + suit_mapping[suit[0]]); plt.axis('off'); plt.show()
+        plt.imshow(original, cmap='gray'); plt.title(rank_mapping[rank[0]+1] + " of " + suit_mapping[suit[0]]); plt.axis('off'); plt.show()
 if __name__ == "__main__":
     main()
