@@ -1,10 +1,19 @@
 ## Image Processing Project 4
 
+
 ## Overview
+- label card rank and suit
+
+# Usage
+- run 'image_capture.py' script
+- upload folder of test images or select webcam option
+- if webcam option chosen, follow terminal instructions to take a snapshot 
+- ensure card is in fram with black background and clear features
 
 # Assumptions:
 - good enough quality to discern card rank and suit
 - black background
+
 
 ## Algorithm pipeline
 
@@ -12,16 +21,18 @@
 
 # Card Classification (Nathan)
 
+
 ## Contributions
+
 # Aria
 -
 # Nathan
 - Developed the Card Classification portion of the project, as well as integration of individual work
 - Created rank and suit masks for use in card classification
 
-## Requirements
 
-These programs were developed and tested with Python 3.9 and require the following third-party packages:
+## Requirements
+- These programs were developed and tested with Python 3.9 and require the following third-party packages:
 
 - opencv-python >= 4.5
 - numpy >= 1.19
