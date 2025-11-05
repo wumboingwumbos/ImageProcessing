@@ -25,7 +25,8 @@
 ## Contributions
 
 # Aria
--
+- Developed the image acquisition and cropping module for automated card recognition.
+- Implemented a program capable of receiving input either from a live camera feed or from a specified image directory.
 # Nathan
 - Developed the Card Classification portion of the project, as well as integration of individual work
 - Created rank and suit masks for use in card classification
