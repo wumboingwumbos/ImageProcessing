@@ -2,25 +2,30 @@
 
 ## Overview
 
-# Detection
-- Chose webcam or load from video/image
-- find card in frame
-- orient card
-- crop card uniformly
+# Assumptions:
+- good enough quality to discern card rank and suit
+- black background
 
-# Classification
-- convert to binary image
-- locate rank and suit on card
-- compare rank and suit with respective masks
-- classify by highest similarity
+## Algorithm pipeline
 
-## Requirements (TBD)
-- python 3.9
-- OpenCV
-- NumPy
-- Matplotlib
-- Scipy.fft
+# Card Capture and Cropping (Aria)
+
+# Card Classification (Nathan)
+
+## Contributions
+# Aria
+-
+# Nathan
+- Developed the Card Classification portion of the project, as well as integration of individual work
+- Created rank and suit masks for use in card classification
+
+## Requirements
+
+These programs were developed and tested with Python 3.9 and require the following third-party packages:
+
+- opencv-python >= 4.5
+- numpy >= 1.19
+- matplotlib >= 3.3
 
 ## SOURCES
-
-- Card images for masks: https://github.com/Xadeck/xCards
+- Card image samples used to create masks: https://github.com/Xadeck/xCards

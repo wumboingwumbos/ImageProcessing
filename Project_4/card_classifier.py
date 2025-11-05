@@ -5,10 +5,10 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-
-# test_card_path = 'C:\\ImageProcessing\\Project_4\\test_cards\\A_spades.jpg'
-test_cards_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
-test_cards = ['7_clubs.jpg', '6_diamonds.jpg', 'A_diamonds.jpg', 'J_hearts.jpg', 'K_clubs.jpg', 'K_diamonds.jpg', 'A_hearts.jpg']
+import os
+test_card_path = 'C:\\ImageProcessing\\upright_Testimage1.tif'
+# test_cards_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
+# test_cards = ['7_clubs.jpg', '6_diamonds.jpg', 'A_diamonds.jpg', 'J_hearts.jpg', 'K_clubs.jpg', 'K_diamonds.jpg', 'A_hearts.jpg']
               
 rank_base_path = 'C:\\ImageProcessing\\Project_4\\rank_masks_bw\\'
 suit_base_path = 'C:\\ImageProcessing\\Project_4\\suit_masks_bw\\'
@@ -63,41 +63,72 @@ def dynamic_binarize(image):
                                    cv2.THRESH_BINARY_INV, 21, 5)
     return binary
 
-def main():
-    for test_card_path in [test_cards_folder + name for name in test_cards]:
-        original = cv2.imread(test_card_path, cv2.IMREAD_GRAYSCALE)
-        # scale to fixed pixel dimensions
-        test_card = cv2.resize(original, (200, 300), interpolation=cv2.INTER_AREA)
-        test_card = dynamic_binarize(test_card)
-        roi = test_card[5:80, 0:35]
-        # mask inner region to avoid border artifacts
-        # plt.imshow(roi, cmap='gray'); plt.title('ROI'); plt.axis('off'); plt.show()
-        suit_masks = []  # load suit masks from suit_base_path
-        rank_masks = []  # load rank masks from rank_base_path
+def classify_and_annotate(input_img):
+    """Classify a cropped/oriented card image (BGR or grayscale ndarray) and
+    return an annotated BGR image plus the predicted rank and suit names.
+    """
+    # accept either a path or an image array
+    if isinstance(input_img, str):
+        img = cv2.imread(input_img, cv2.IMREAD_COLOR)
+        if img is None:
+            raise FileNotFoundError(f"Image not found: {input_img}")
+    else:
+        img = input_img.copy()
 
-        for i in range(4):  # assuming 4 suits
-            suit_mask = cv2.imread(f'{suit_base_path}{i}.png', cv2.THRESH_BINARY)
-            suit_masks.append(suit_mask)
-        for i in range(13):  # assuming 13 ranks
-            rank_mask = cv2.imread(f'{rank_base_path}{i+1}.png', cv2.THRESH_BINARY)
-            rank_masks.append(rank_mask)
-        # show ROI boxes on test card
-        # cv2.imshow('Test Card', test_card)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        components = find_all_components(roi)
+    # work on a resized copy for stable ROI coordinates
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if img.ndim == 3 else img
+    resized = cv2.resize(gray, (200, 300), interpolation=cv2.INTER_AREA)
+    binary = dynamic_binarize(resized)
+    roi = binary[5:80, 0:35]
 
-        rank = analyze_component(components[0], rank_masks)
-        suit = analyze_component(components[1], suit_masks)
-        suit_mapping = {0: 'Hearts', 1: 'Diamonds', 2: 'Clubs', 3: 'Spades'}
-        rank_mapping = {i+1: str(i+1) for i in range(10)}
-        rank_mapping.update({11: 'J', 12: 'Q', 13: 'K', 1: 'A'})
-        # compare predicted rank with mask
-        # plt.imshow(components[0], cmap='gray'); plt.title('Detected Rank Component'); plt.axis('off'); plt.show()
-        # plt.imshow(rank_masks[rank[0]], cmap='gray'); plt.title('Best Matching Rank Mask'); plt.axis('off'); plt.show()
-        print(f'Detected Card: {rank_mapping[rank[0]+1]} of {suit_mapping[suit[0]]} (Rank Score: {1-rank[1]:.3f}, Suit Score: {1-suit[1]:.3f})')
-        # cv2.imshow('Masked Test Card', roi)
-        # cv2.waitKey(0)
-        plt.imshow(original, cmap='gray'); plt.title(rank_mapping[rank[0]+1] + " of " + suit_mapping[suit[0]]); plt.axis('off'); plt.show()
+    components = find_all_components(roi)
+    if len(components) < 2:
+        # return original annotated with 'Not Found'
+        annotated = ensure_color(img)
+        cv2.putText(annotated, 'Rank/Suit not found', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
+        return annotated, None, None
+
+    # load masks
+    suit_masks = [cv2.imread(f'{suit_base_path}{i}.png', cv2.IMREAD_GRAYSCALE) for i in range(4)]
+    rank_masks = [cv2.imread(f'{rank_base_path}{i+1}.png', cv2.IMREAD_GRAYSCALE) for i in range(13)]
+
+    rank = analyze_component(components[0], rank_masks)
+    suit = analyze_component(components[1], suit_masks)
+    suit_mapping = {0: 'Hearts', 1: 'Diamonds', 2: 'Clubs', 3: 'Spades'}
+    rank_mapping = {i+1: str(i+1) for i in range(10)}
+    rank_mapping.update({11: 'J', 12: 'Q', 13: 'K', 1: 'A'})
+
+    rank_name = rank_mapping.get(rank[0]+1, str(rank[0]+1))
+    suit_name = suit_mapping.get(suit[0], str(suit[0]))
+
+    final = ensure_color(resized)
+    label = f"{rank_name} of {suit_name}"
+    font_size = 0.5
+    position = (50, 20)
+    cv2.putText(final, label, position, cv2.FONT_HERSHEY_SIMPLEX, font_size, (200,70,30), 2)
+    return final, rank_name, suit_name
+
+def ensure_color(img):
+    if img is None:
+        return None
+    if img.ndim == 2:
+        return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    return img
+
+
+def main(image):
+    # backward-compatible entry point: accept path or image ndarray
+    final, rank_name, suit_name = classify_and_annotate(image)
+    # if final is not None:
+    #     cv2.imshow(f"{rank_name} of {suit_name}", image)
+    #     cv2.waitKey(0)
+    return final, rank_name, suit_name
 if __name__ == "__main__":
-    main()
+    test_card_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
+    for filename in os.listdir(test_card_folder):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tif', '.bmp')):
+            test_card_path = os.path.join(test_card_folder, filename)
+            test_card = cv2.imread(test_card_path, cv2.IMREAD_COLOR)
+            final, rank_name, suit_name = main(test_card)
+            cv2.imshow(f"{rank_name} of {suit_name}", final)
+    cv2.waitKey(0)
