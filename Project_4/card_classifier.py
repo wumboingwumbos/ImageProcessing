@@ -57,16 +57,16 @@ def find_all_components(binary_card):
                 continue
             # print(f'component size: {component.shape}')
         components.append(component)
-        # cv2.imshow(f'Component {label}', component)
+        cv2.imshow(f'Component {label}', component)
         if len(components) == 2:
             break
     # cv2.waitKey(0)    
     return components
 
 def dynamic_binarize(image):
-    blurred = cv2.GaussianBlur(image, (5, 5), 0)
+    blurred = cv2.GaussianBlur(image, (9, 9), 0)
     binary = cv2.adaptiveThreshold(blurred.astype(np.uint8), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY_INV, 5, 2)
+                                   cv2.THRESH_BINARY_INV, 7, 2)
     return binary
 
 def classify_and_annotate(input_img):
@@ -86,7 +86,7 @@ def classify_and_annotate(input_img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if img.ndim == 3 else img
     resized = cv2.resize(gray, (200, 300), interpolation=cv2.INTER_AREA)
     binary = dynamic_binarize(resized)
-    # cv2.imshow('Binary Card', binary)
+    cv2.imshow('Binary Card', binary)
     roi = binary[5:80, 0:35]
 
     components = find_all_components(roi)
@@ -132,12 +132,12 @@ def main(image):
     return final, rank_name, suit_name
 
 if __name__ == "__main__":
-    # test_card_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
-    # for filename in os.listdir(test_card_folder):
-        # if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tif', '.bmp')):
-        #     test_card_path = os.path.join(test_card_folder, filename)
-    test_card_path = r"C:\ImageProcessing\Project_4\test_cards\Q_hearts.jpg"
-    test_card = cv2.imread(test_card_path, cv2.IMREAD_COLOR)
-    final, rank_name, suit_name = main(test_card)
-    cv2.imshow(f"{rank_name} of {suit_name}", final)
+    test_card_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
+    # test_card_path = 'C:\\ImageProcessing\\Project_4\\test_cards\\K_clubs.jpg'
+    for filename in os.listdir(test_card_folder):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tif', '.bmp')):
+            test_card_path = os.path.join(test_card_folder, filename)
+            test_card = cv2.imread(test_card_path, cv2.IMREAD_COLOR)
+            final, rank_name, suit_name = main(test_card)
+            cv2.imshow(f"{rank_name} of {suit_name}", final)
     cv2.waitKey(0)
