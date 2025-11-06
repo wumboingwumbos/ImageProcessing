@@ -1,19 +1,25 @@
-# assuming input is oriented cropped card image
-# finds all components on the card image
-# compares located rank and suit to pre-stored masks
-# output is card rank and suit
+
+''' 
+input is oriented cropped card image
+finds all components on the card image
+compares located rank and suit to pre-stored masks
+output is card rank and suit
+'''
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+
 test_card_path = 'C:\\ImageProcessing\\upright_Testimage1.tif'
 # test_cards_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
 # test_cards = ['7_clubs.jpg', '6_diamonds.jpg', 'A_diamonds.jpg', 'J_hearts.jpg', 'K_clubs.jpg', 'K_diamonds.jpg', 'A_hearts.jpg']
-              
-rank_base_path = 'C:\\ImageProcessing\\Project_4\\rank_masks_bw\\'
-suit_base_path = 'C:\\ImageProcessing\\Project_4\\suit_masks_bw\\'
+
+# local paths to rank and suit masks
+rank_base_path = 'rank_masks_bw\\'
+suit_base_path = 'suit_masks_bw\\'
 
 def analyze_component(component, masks):
+    ''' compare component to each mask using jaccard index, return best match index and score '''
     best_index = None
     best_score = float('inf')
     binary_comp = component > 0
@@ -26,8 +32,8 @@ def analyze_component(component, masks):
         if score < best_score:
             best_score = score
             best_index = i
-    # show side by side comparison of best mask and component
-    comparison = np.hstack((binary_comp.astype(np.uint8) * 255, resized_mask.astype(np.uint8) * 255))
+    # # show side by side comparison of best mask and component
+    # comparison = np.hstack((binary_comp.astype(np.uint8) * 255, resized_mask.astype(np.uint8) * 255))
     # plt.imshow(comparison, cmap='gray'); plt.title('Component (left) vs Best Mask (right)'); plt.axis('off'); plt.show()
     return best_index, best_score
  
@@ -60,11 +66,12 @@ def find_all_components(binary_card):
 def dynamic_binarize(image):
     blurred = cv2.GaussianBlur(image, (5, 5), 0)
     binary = cv2.adaptiveThreshold(blurred.astype(np.uint8), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY_INV, 21, 5)
+                                   cv2.THRESH_BINARY_INV, 5, 2)
     return binary
 
 def classify_and_annotate(input_img):
-    """Classify a cropped/oriented card image (BGR or grayscale ndarray) and
+    """
+    Classify a cropped/oriented card image (BGR or grayscale ndarray) and
     return an annotated BGR image plus the predicted rank and suit names.
     """
     # accept either a path or an image array
@@ -79,6 +86,7 @@ def classify_and_annotate(input_img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if img.ndim == 3 else img
     resized = cv2.resize(gray, (200, 300), interpolation=cv2.INTER_AREA)
     binary = dynamic_binarize(resized)
+    # cv2.imshow('Binary Card', binary)
     roi = binary[5:80, 0:35]
 
     components = find_all_components(roi)
@@ -115,7 +123,6 @@ def ensure_color(img):
         return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     return img
 
-
 def main(image):
     # backward-compatible entry point: accept path or image ndarray
     final, rank_name, suit_name = classify_and_annotate(image)
@@ -123,12 +130,14 @@ def main(image):
     #     cv2.imshow(f"{rank_name} of {suit_name}", image)
     #     cv2.waitKey(0)
     return final, rank_name, suit_name
+
 if __name__ == "__main__":
-    test_card_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
-    for filename in os.listdir(test_card_folder):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tif', '.bmp')):
-            test_card_path = os.path.join(test_card_folder, filename)
-            test_card = cv2.imread(test_card_path, cv2.IMREAD_COLOR)
-            final, rank_name, suit_name = main(test_card)
-            cv2.imshow(f"{rank_name} of {suit_name}", final)
+    # test_card_folder = 'C:\\ImageProcessing\\Project_4\\test_cards\\'
+    # for filename in os.listdir(test_card_folder):
+        # if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tif', '.bmp')):
+        #     test_card_path = os.path.join(test_card_folder, filename)
+    test_card_path = r"C:\ImageProcessing\Project_4\test_cards\Q_hearts.jpg"
+    test_card = cv2.imread(test_card_path, cv2.IMREAD_COLOR)
+    final, rank_name, suit_name = main(test_card)
+    cv2.imshow(f"{rank_name} of {suit_name}", final)
     cv2.waitKey(0)
