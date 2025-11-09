@@ -64,9 +64,9 @@ def find_all_components(binary_card):
     return components
 
 def dynamic_binarize(image):
-    blurred = cv2.GaussianBlur(image, (9, 9), 0)
-    binary = cv2.adaptiveThreshold(blurred.astype(np.uint8), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY_INV, 7, 2)
+    blur = cv2.GaussianBlur(image, (5, 5), 0)
+    binary = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                   cv2.THRESH_BINARY_INV, 11, 2)
     return binary
 
 def classify_and_annotate(input_img):
