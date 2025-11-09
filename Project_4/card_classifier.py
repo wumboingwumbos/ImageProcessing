@@ -57,7 +57,7 @@ def find_all_components(binary_card):
                 continue
             # print(f'component size: {component.shape}')
         components.append(component)
-        cv2.imshow(f'Component {label}', component)
+        # cv2.imshow(f'Component {label}', component)
         if len(components) == 2:
             break
     # cv2.waitKey(0)    
@@ -86,7 +86,7 @@ def classify_and_annotate(input_img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if img.ndim == 3 else img
     resized = cv2.resize(gray, (200, 300), interpolation=cv2.INTER_AREA)
     binary = dynamic_binarize(resized)
-    cv2.imshow('Binary Card', binary)
+    # cv2.imshow('Binary Card', binary)
     roi = binary[5:80, 0:35]
 
     components = find_all_components(roi)
