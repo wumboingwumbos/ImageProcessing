@@ -1,0 +1,38 @@
+## Image Processing Project 5
+
+
+## Overview
+- Presentation on traditional vs ML denoising techniques
+
+# Usage
+- ...
+
+# Assumptions:
+- ...
+
+
+## Algorithm pipeline
+
+# Traditional Techniques (Aria)
+
+# ML Techniques (Nathan)
+
+
+## Contributions
+
+# Aria
+- ...
+# Nathan
+- ...
+
+
+## Requirements
+- These programs were developed and tested with Python 3.9 and require the following third-party packages:
+
+- opencv-python >= 4.5
+- numpy >= 1.19
+- matplotlib >= 3.3
+- ...
+
+## SOURCES
+- ...
