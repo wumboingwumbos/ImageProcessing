@@ -10,6 +10,6 @@ def create_checkerboard(square_size=50, num_squares=8):
             if (i + j) % 2 == 0:
                 checkerboard[i*square_size:(i+1)*square_size, j*square_size:(j+1)*square_size] = 255
 
-    cv2.imwrite('checkerboard.png', checkerboard)
+    cv2.imwrite('checkerboard.bmp', checkerboard)
     return checkerboard
 create_checkerboard()

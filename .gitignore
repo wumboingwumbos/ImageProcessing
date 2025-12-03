@@ -1,2 +1,15 @@
 /.venv
 /Images
+/__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints
+.vscode
+.env
+*.sqlite3
+*.log
+*.csv
+*.h5
+*.pth
+*.ckpt
+/Project_5/STI
