@@ -3,8 +3,8 @@ import cv2
 import numpy as np
 from scipy.signal import wiener
 
-def apply_wiener_filter_single():
-    img_path = input("Enter the image path: ").strip()
+def apply_wiener_filter_single(image_path=None):
+    img_path = image_path
 
     if not os.path.isfile(img_path):
         print("Error: The provided path is not a valid file.")
@@ -51,7 +51,7 @@ def apply_wiener_filter_single():
 
     cv2.imwrite(save_path, filtered_img_uint8)
     print(f"Saved Wiener-filtered image as: {save_path}")
-
+    return save_path
 
 if __name__ == "__main__":
     apply_wiener_filter_single()

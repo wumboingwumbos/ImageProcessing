@@ -5,25 +5,17 @@
 - Presentation on traditional vs ML denoising techniques
 
 # Usage
-- ...
+- Run denoise.py
 
 # Assumptions:
-- ...
-
-
-## Algorithm pipeline
-
-# Traditional Techniques (Aria)
-
-# ML Techniques (Nathan)
-
+- additive noise sigma = 25 for DRUNet
 
 ## Contributions
 
 # Aria
-- ...
+- Traditional methods as well as Matlab DnCNN development
 # Nathan
-- ...
+- ML methods
 
 
 ## Requirements
@@ -32,7 +24,8 @@
 - opencv-python >= 4.5
 - numpy >= 1.19
 - matplotlib >= 3.3
-- ...
+- scipy 1.13.1
+- scikit-image 0.24.0
+- deepinv 0.3.2
+- torch 2.6
 
-## SOURCES
-- ...

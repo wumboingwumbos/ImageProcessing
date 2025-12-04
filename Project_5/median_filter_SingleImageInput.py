@@ -1,9 +1,9 @@
 import cv2
 import os
 
-def median_filter_single():
+def median_filter_single(image_path=None):
     # Ask user for image path
-    img_path = input("Enter the image path: ").strip()
+    img_path = image_path
 
     # Validate path
     if not os.path.isfile(img_path):
@@ -36,7 +36,7 @@ def median_filter_single():
 
     cv2.imwrite(save_path, filtered)
     print(f"Saved filtered image as: {save_path}")
-
+    return save_path
 
 if __name__ == "__main__":
     median_filter_single()
