@@ -90,9 +90,9 @@ def DRUNet_denoise(noisy_image, sigma=0.1, device=device):
     denoised = np.clip(denoised, 0.0, 1.0)
 
     denoised_uint8 = (denoised * 255.0).round().astype(np.uint8)
-    denoised_bgr = denoised_uint8  # if your input was BGR, you can swap channels if needed
+    denoised_bgr = denoised_uint8  
 
-    # optionally save, but DON'T return the path
+   
     cv2.imwrite('drunet_denoised.png', denoised_bgr)
 
     return denoised_bgr
